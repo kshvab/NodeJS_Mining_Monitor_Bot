@@ -1,80 +1,42 @@
-var TelegramBot=require('node-telegram-bot-api');
+var mongoose = require('mongoose');
 var fs = require('fs');
-var token='612583872:AAGc3jDt_Rc7xiCn3wCjujrn35KfNHIzcbk';	//main
-//var token='598509339:AAGouiHG2XfC6a7ASi3mYr1dPCgq8Y4UxZA';	//test
 
-
-var bot=new TelegramBot(token,{polling:true});
-
-var actMonitor = new Object;
-	actMonitor={};
-
+var admdata = require('./server_modules/adm_data');
+var db = require ('./server_modules/db');
+var farmOwner = require('./server_modules/db_models');
+var bot_module = require('./server_modules/bot');
 var tStart = Date.now();
 
- function timeConversion(millisec) {
+var bot = bot_module.bot;
+module.exports.bot = bot;
 
-        var seconds = (millisec / 1000).toFixed(1);
+db.connect(admdata.dbUrl);
 
-        var minutes = (millisec / (1000 * 60)).toFixed(1);
-
-        var hours = (millisec / (1000 * 60 * 60)).toFixed(1);
-
-        var days = (millisec / (1000 * 60 * 60 * 24)).toFixed(1);
-
-        if (seconds < 60) {
-            return seconds + " Sec";
-        } else if (minutes < 60) {
-            return minutes + " Min";
-        } else if (hours < 24) {
-            return hours + " Hrs";
-        } else {
-            return days + " Days"
-        }
-    };
-
-
+//************ | User inputs | ************\\
+{
 
 bot.on('message', (msg) => {
-	fPokazMainButton(msg)
-});
-
-function fPokazMainButton(msg){
-
+	
 	var topMes;
 
 	switch (msg.text) {
   		case '/BALANCE':
     		topMes = "💬 BALANCE";
     		break;
-		case '/Balance':
-    		topMes = "💬 BALANCE";
-    		break;
-		case '/balance':
-    		topMes = "💬 BALANCE";
-    		break;
 		case '/DASHBOARD':
     		topMes = "💬 DASHBOARD";
     		break;
-		case '/dashboard':
-    		topMes = "💬 DASHBOARD";
-    		break;
-		case '/STOP':
-    		topMes = "⚠️ Зупиняю моніторинг усіх Ваших адрес.";
-    		break;
 		case '/help':
-    		topMes = "💬 Інструкція";
-    		break;
-		case '/Stop':
-    		topMes = "⚠️ Зупиняю моніторинг усіх Ваших адрес.";
+    		topMes = "💬 How to use";
     		break;
 		case '/stop':
-    		topMes = "⚠️ Зупиняю моніторинг усіх Ваших адрес.";
+    		topMes = "⚠️ I stop monitoring all your addresses";
     		break;
 		case '/TOP10':
     		topMes = "💬 TOP10 from coinmarketcap.com";
     		break;
   		case undefined:
-   			topMes = "💬 Ok, зараз усьо буде...";
+   			topMes = "💬 Ok, give me a second...";
     		break;			
   		default:
     		topMes = "💬 Sorry, no time for chatting, need to monitor 😎\n🤖 Created by K. Shvab (CyberDream.Club)";
@@ -92,14 +54,9 @@ function fPokazMainButton(msg){
 	chatId = msg.hasOwnProperty('chat') ? msg.chat.id : msg.from.id;
 	bot.sendMessage(chatId, topMes, keyboard);
 	
-};
+});
 
-function fHelp(msg){
-	
-	bot.sendMessage(msg.from.id, '💬 Надайте мені адреси, на які Ви здійснюєте майнінг\n❓ Як правильно ввести адресу?\n💡 Приклад для ETH:\n/0xsf5sef4ghjg...\n/ETH 0xsf5sef4ghjg...\n/eth 0xsf5sef4ghjg...\n💡 Приклад для ZEC:\n/t5ehgsef4ghjg...\n/ZEC t5ehgsef4ghjg...\n/zec t5ehgsef4ghjg...');
-};
-
-function fTop10(msg){
+bot.onText(/\/top10/i,function(msg, match){
 	var userId = msg.from.id;
 	
 	var request = require('request');
@@ -157,63 +114,23 @@ function fTop10(msg){
 			
 			
 			text += A + obj.data[i].name + ' $' + (+obj.data[i].quotes.USD.price).toFixed(2) + B + obj.data[i].quotes.USD.percent_change_24h + ')\n'
-			
-			
-			
-			
-
 		};	
-		console.log(text);
+		console.log('\n=====> User #' + userId + ' need top10:\n\n'+ text);
 		bot.sendMessage(userId, text);
 	});	
-};
+});
+
+bot.onText(/\/help/i,function(msg, match){
+bot.sendMessage(msg.from.id, '💬 Give me the your mining addresses\n💡 Examples for ETH:\n/0xsf5sef4ghjg...\n/ETH 0xsf5sef4ghjg...\n/eth 0xsf5sef4ghjg...\n💡 Examples for ZEC:\n/t5ehgsef4ghjg...\n/ZEC t5ehgsef4ghjg...\n/zec t5ehgsef4ghjg...');
+});
 
 
-//*********** Робота з глобальою змінною ***********
-/*
-function Test2(){
-	
-	var userId = 8888;
-	var Adr = '0x1111';
-	var bbb = 'www';
-	
-	actMonitor[userId] = {};
-		
-		//{monOnOf: true, [Adr]: true};
-	
-	actMonitor[userId]['ccc'] = 2;
-	actMonitor[userId][bbb] = false;
-	console.log(actMonitor[userId][bbb]);
-	console.log(JSON.stringify(actMonitor));
-	
-	
-	
-	
-	
-	
-	
-	
-	if(	(actMonitor.hasOwnProperty(userId)) && 	
-		(actMonitor[userId].hasOwnProperty(Adr))	&&
-		(actMonitor[userId].monOnOf) &&
-		(actMonitor[userId][Adr]) ){
-	};
 
-};
-Test2();
-*/
-
-
-//*********** USER INPUTS ***********
-{
-	
-	
 bot.onText(/\/0x(.+)/,function(msg, match){
 	var Adr = msg.text.slice(1);
 	var Cur = 'ETH';
 	initMonitoring(msg, Adr, Cur);
 });
-
 
 bot.onText(/\/t(.+)/,function(msg, match){
 	var Adr = msg.text.slice(1);
@@ -221,187 +138,65 @@ bot.onText(/\/t(.+)/,function(msg, match){
 	initMonitoring(msg, Adr, Cur);
 });
 
-
-bot.onText(/\/ETH (.+)/,function(msg,match){
-	var Adr = match[1];
-	var Cur = 'ETH';
-	initMonitoring(msg, Adr, Cur);
-});
-
-
-bot.onText(/\/eth (.+)/,function(msg,match){
+bot.onText(/\/eth (.+)/i,function(msg,match){
 	var Adr=match[1];
 	var Cur = 'ETH';
 	initMonitoring(msg, Adr, Cur);
 });
 
-
-bot.onText(/\/ZEC (.+)/,function(msg,match){
+bot.onText(/\/zec (.+)/i,function(msg,match){
 	var Adr=match[1];
 	var Cur = 'ZEC';
 	initMonitoring(msg, Adr, Cur);
 });
 
-
-bot.onText(/\/zec (.+)/,function(msg,match){
-	var Adr=match[1];
-	var Cur = 'ZEC';
-	initMonitoring(msg, Adr, Cur);
-});
-	
-	
-bot.onText(/\/BALANCE/,function(msg, match){
-	fShowBalances(msg);
-});
-	
-bot.onText(/\/Balance/,function(msg, match){
-	fShowBalances(msg);
-});
-	
-bot.onText(/\/balance/,function(msg, match){
-	fShowBalances(msg);
-});
-	
 bot.onText(/\/stop/,function(msg, match){
-	console.log('11111111111')
 	fStopMonitoring(msg);
 });
 
-bot.onText(/\/STOP/,function(msg, match){
-	fStopMonitoring(msg);
+bot.onText(/\/BALANCE/,function(msg, match){
+	fBalancesInit(msg);
 });
-	
-bot.onText(/\/Stop/,function(msg, match){
-	fStopMonitoring(msg);
-});	
-	
+
 bot.onText(/\/DASHBOARD/,function(msg, match){
 	fInitDashboard(msg);
-});		
+});
 
-bot.onText(/\/dashboard/,function(msg, match){
-	fInitDashboard(msg);
-});	
-	
-bot.onText(/\/help/,function(msg, match){
-	fHelp(msg);
-});
-	
-bot.onText(/\/TOP10/,function(msg, match){
-	fTop10(msg);
-});
-	
 }
 
-//*********** DASHBOARD ***********
-{
-	
-function fInitDashboard(msg){
-	var userId = msg.from.id;
-	
-	if	(
-	(!(actMonitor.hasOwnProperty(userId))) ||
-	(!(actMonitor[userId].monOnOf))
-	){
-		console.log('=====> Жодна адреса зараз не моніториться');
-		bot.sendMessage(userId, '⚠️ Жодна адреса зараз не моніториться, спочатку надайте адресу.');
-	}
-	else{
-		
-		var usrKeys = Object.keys(actMonitor[userId]);
-		
-		for(var i=0; i<usrKeys.length ;i++)	{
-			
-			if (usrKeys[i] == 'monOnOf') continue;
-			
-			var Cur;
-			var Adr = usrKeys[i];
-			
-			if (usrKeys[i][0] == 0){
-				Cur = 'ETH';
-				fDashboardEth(msg, Adr, Cur);
-			}
-			else {
-				Cur = 'ZEC';
-				fDashboardZec(msg, Adr, Cur);
-			};
-		};
-	};
-};
-
-
-function fDashboardEth(msg, Adr, Cur){
-	var userId = msg.from.id;
-	console.log('EFIRKA');
-	
-	var request = require('request');
-	var apiUrl = 'https://api.ethermine.org/miner/' + Adr + '/workers';
-			
-    request(apiUrl, function (error, response, body) {
-        if (error) {
-            console.log(error);
-            return;
-        };
-		var obj = JSON.parse(body);
-			
-		if (obj.status == 'ERROR'){
-			console.log('=====> Не можу отримати доступ до пулу ' + Adr);
-			bot.sendMessage(userId, '⚠️ Не можу отримати доступ до пулу ' + Adr);
-		}
-		else {
-
-			fAddAtrDb(msg, Adr, Cur, obj);	//Розширили об'єкт
-
-			for (var i=0; i<obj.data.length; i++) {
-			obj.data[i].reportedHashrate/=1000000;
-			obj.data[i].currentHashrate/=1000000;
-			};
+//********* | Address initiation | ********\\
+function fServerStart (){
+	farmOwner.find({}, function (err, docs) {
+		for (var i = 0; i < docs.length; i++) {
+			if (!(docs[i].isMonitored)) continue;
+			var userId;
+			for (var k = 0; k < docs[i].addresses.length; k++) {
 				
-			fShowRigList (obj);				//Покажемо поточні ферми
-			
-		};	
-	});	
-	
+				var obj ={};
+				obj.data = [{}];
+				obj.userId = docs[i].telegramUserId;
+				obj.userName = docs[i].firstName;
+				obj.userSurName = docs[i].secondName;
+				obj.userUserName = docs[i].userName;
+				obj.Adr = docs[i].addresses[k].adr;
+				obj.currency =docs[i].addresses[k].cur;
+				userId = obj.userId;
+				fStartMonitoring(obj);
+			};
+			console.log("=====> I\'m coming back to work ...");
+			bot.sendMessage(userId, "⚠️ Oops, sorry, I think I was offline for a while.\nPerhaps some technical work was done on the server.\nI\'m coming back to work ...");
+		};
+	});
 };
 
+fServerStart();
 
-function fDashboardZec(msg, Adr, Cur){
-console.log('EFIRKA');
-	var userId = msg.from.id;
-	var request = require('request');
-	var apiUrl = 'https://api-zcash.flypool.org/miner/' + Adr + '/workers';
-			
-    request(apiUrl, function (error, response, body) {
-        if (error) {
-            console.log(error);
-            return;
-        };
-		var obj = JSON.parse(body);
-			
-		if (obj.status == 'ERROR'){
-			console.log('=====> Не можу отримати доступ до пулу ' + Adr);
-			bot.sendMessage(userId, '⚠️ Не можу отримати доступ до пулу ' + Adr);
-		}
-		else {
-
-			fAddAtrDb(msg, Adr, Cur, obj);	//Розширили об'єкт
-			fShowRigList (obj);				//Покажемо поточні ферми
-		};	
-	});	
-	
-	
-	
-};
-
-}
-
-
-//****** Ініціація адреси ******
+//********* | Address initiation | ********\\
 function initMonitoring(msg, Adr, Cur){
 	userId = msg.from.id;
 	
-	console.log('=====> FUNCTION InitMonitoring STARTED')
-	console.log('=====> ENTERED ' + Adr)
+	console.log('=====> User #' + userId + ' initiated adress:');
+	console.log('=====> ' + Cur + ': '+ Adr);
 	
 	
 	newScanUsrDb(Adr, Cur, function(freshUsrDb) {
@@ -410,56 +205,370 @@ function initMonitoring(msg, Adr, Cur){
 		
 		if (obj.status == 'ERROR') {
 			if (obj.error == 'Invalid address') {
-				console.log('=====> Адресу введено невірно!');
-				bot.sendMessage(userId, '⚠️ Адресу введено невірно! Перевірте її та спробуйте ще раз.');
+				console.log('=====> Invalid address');
+				bot.sendMessage(userId, '⚠️ Invalid address! Check it out and try again');
 			}
 			else {
-				console.log('=====> Адреса схожа на правильну, але виникла якась технічна помилка, зверніться до служби підтримки.');
-				bot.sendMessage(userId, '⚠️ Адреса схожа на правильну, але виникла якась технічна помилка, зверніться до служби підтримки. (код помилки 0001)');
+				console.log('=====> The address looks like the correct one but there was a technical error, please contact support.');
+				bot.sendMessage(userId, '⚠️ The address looks like the correct one but there was a technical error, please contact support.');
 			}
 		}
-		
 		else {
-			if(
-				(actMonitor.hasOwnProperty(userId)) && 	
-				(actMonitor[userId].hasOwnProperty(Adr))	&&
-				(actMonitor[userId].monOnOf) &&
-				(actMonitor[userId][Adr])
-			 	){
-				console.log('=====> Адреса уже моніториться');
-				bot.sendMessage(userId, '⚠️ Адреса уже моніториться');
+			farmOwner.findOne({ 'telegramUserId': userId }, function (err, person) {
+  				if (err) return handleError(err);
+				
+				var userExist = false;
+				var	adrExist = false;
+				var	underMonitoring = false;
+				
+				if (!(person)){
+					addNewPerson();
 				}
-			else {
-				//console.log("=====> Адреса пройшла перевірку, дані з пулу завантажені.");
+				else {
+					activateAdr();
+				};
 				
-				fAddAtrDb(msg, Adr, Cur, obj);	//Розширили об'єкт
+				function addNewPerson(){
+					
+					var newFarmOwner = new farmOwner ({
+						_id: new mongoose.Types.ObjectId(),
+						telegramUserId: userId,
+						isMonitored: true,
+						addresses: [{
+							adr: Adr,
+							cur: Cur
+						}],
+						firstName: msg.from.first_name,
+						secondName: msg.from.second_name,
+						userName: msg.from.username,
+					});
+		
+					newFarmOwner.save(function(err) {
+						if (err) throw err;
+					});	
+											
+					fPrepForStart();
+					
+				};
 				
-				
-				if (Cur == 'ETH') {
-					for (var i=0; i<obj.data.length; i++) {
-					obj.data[i].reportedHashrate/=1000000;
-					obj.data[i].currentHashrate/=1000000;
+				function activateAdr(){
+					var indexOfWallet = -1;
+					
+					for (var i = 0; i < person.addresses.length; i++){
+						if(person.addresses[i].adr === Adr) indexOfWallet = i;
+					};
+					
+					if (person.isMonitored && (indexOfWallet != -1)){
+						console.log('=====> The address is already monitored');
+						bot.sendMessage(userId, '⚠️ The address is already monitored');
+						return;
+					}
+					else {
+						
+						if ((!(person.isMonitored)) && (indexOfWallet != -1)){
+							console.log('=====> I am restored monitoring');
+							bot.sendMessage(userId, '⚠️ I am restored monitoring');
+							person.isMonitored = true;
+							person.save();
+						}
+						else {
+							console.log('=====> A new address submitted for monitoring');
+							bot.sendMessage(userId, '⚠️ A new address submitted for monitoring');
+							person.isMonitored = true;
+							person.addresses.push({"adr": Adr, "cur": Cur});
+							person.save();
+						};
+						
+						fPrepForStart();
+						
 					};
 				};
 				
+				function fPrepForStart(){
+	
+					fAddAtrDb(msg, Adr, Cur, obj);	//Розширили об'єкт
+					
+					if (Cur == 'ETH') {
+						for (var i=0; i<obj.data.length; i++) {
+						obj.data[i].reportedHashrate/=1000000;
+						obj.data[i].currentHashrate/=1000000;
+						};
+					};
+					
+					fWriteToFile (obj);				//Збережемо у файл
+					fShowRigList (obj);				//Покажемо поточні ферми
+					fStartMonitoring (obj);			//Старт моніторингу
+				};
 				
-				fWriteToFile (obj);				//Збережемо у файл
-				
-				//Змінюємо глобальну змінну
-				
-				if (!(actMonitor.hasOwnProperty(userId))) actMonitor[userId] = {};
-				actMonitor[userId].monOnOf = true;
-				actMonitor[userId][Adr] = true;
-				
-				fShowRigList (obj);				//Покажемо поточні ферми
-				fStartMonitoring (obj);			//Старт моніторингу
-			};
+			});
 		};
 	});
 };
 
 
-//****** Розширення об'єкта ******
+
+//********** | Monitoring cycle | *********\\
+function fStartMonitoring (obj) {
+	var Cur = obj.currency;
+	var userId = obj.userId;
+	var Adr=obj.Adr;
+		
+	var CronJob = require('cron').CronJob;
+	var job = new CronJob({
+  		cronTime: '*/3 * * * *',
+  		onTick: function() {
+			var tDuration = timeConversion(Date.now() - tStart);
+			console.log('=====> CRON cycle: ' + tDuration + ' ==> ' + Adr);
+
+			
+			//***** Stop monitoring *********
+			
+			farmOwner.findOne({ 'telegramUserId': userId }, function (err, person) {
+  				if (err) return handleError(err);
+				
+				if	(!(person.isMonitored)){
+			  	console.log('=====> Monitoring '+ Adr + ' stopped');
+				bot.sendMessage(userId, '⚠️ Monitoring '+ Adr + ' stopped!');
+				job.stop();
+				return;
+			   };
+				
+			});
+			
+			//***** Cycle monitoring *********
+			
+			newScanUsrDb(Adr, Cur, function(freshUsrDb) {
+				
+                if (freshUsrDb == 'error') return;
+
+				var newObj = JSON.parse(freshUsrDb);
+				
+				if (Cur == 'ETH') {
+					for (var i=0; i<newObj.data.length; i++) {
+					newObj.data[i].reportedHashrate/=1000000;
+					newObj.data[i].currentHashrate/=1000000;
+					};
+				};
+				
+				
+				//console.log('=====> 3. Пройдемося по старому обєкту:');
+				for (i = 0; i < obj.data.length; i++) {
+					
+					var exist = false;
+					var oldHashrate;
+					var newHashrate;
+					
+					for (k = 0; k < newObj.data.length; k++) {
+						if (obj.data[i].worker == newObj.data[k].worker) {
+							exist = true;
+							if (Cur == 'ETH') {
+								oldHashrate = obj.data[i].reportedHashrate;
+								newHashrate = newObj.data[k].reportedHashrate;
+							}
+							else {
+								oldHashrate = obj.data[i].currentHashrate;
+								newHashrate = newObj.data[k].currentHashrate;
+							};
+								
+						};
+					};
+						
+						
+					if ((!(exist))&&(obj.data[i].worker)) {
+						console.log('=====> ' + obj.data[i].worker + ': Deleted from pool listing');
+						bot.sendMessage(userId, '❌ ' + obj.data[i].worker + ': Deleted from pool listing');
+					};
+					
+					if ((exist)&&(!(newHashrate))&&(oldHashrate)) {
+						console.log('=====> Offline ' + obj.data[i].worker);
+						bot.sendMessage(userId, '🔴 Offline ' + obj.data[i].worker);
+					};
+					
+					if ((exist)&&(newHashrate)&&(!(oldHashrate))) {
+						console.log('=====> Online ' + obj.data[i].worker);
+						bot.sendMessage(userId, '🎾 Online ' + obj.data[i].worker);
+					};
+
+				};
+				
+				//console.log('=====> 4. Пройдемося по новому обєкту:');
+				for (i = 0; i < newObj.data.length; i++) {
+					var exist = false;
+					for (k = 0; k < obj.data.length; k++) {
+						if (newObj.data[i].worker == obj.data[k].worker) {
+							exist = true;
+						};
+					};
+						
+					if (!(exist)) {
+						console.log('=====> ' + newObj.data[i].worker);
+						bot.sendMessage(userId, '🎾 Online ' + newObj.data[i].worker);
+					};
+				};
+				
+				fTransportAtributes (obj, newObj);
+				obj=newObj;
+			
+			});
+		},
+  		start: false,
+  		timeZone: 'Europe/Amsterdam'
+	});
+	
+	job.start();			
+};
+
+
+
+//************** | Balance | **************\\
+function fBalancesInit (msg){
+	var userId = msg.from.id;
+	
+	farmOwner.findOne({ 'telegramUserId': userId }, function (err, person) {
+  		if (err) return handleError(err);
+		if	(!(person.isMonitored)) {
+			console.log('=====> No address is monitored');
+			bot.sendMessage(userId, '⚠️ No address is monitored');
+			return;
+		};
+		for (var i = 0; i < person.addresses.length; i++){
+			var Cur = person.addresses[i].cur;
+			var Adr = person.addresses[i].adr;
+			
+			fShowBalanse(userId, Adr, Cur);
+		};
+	});
+	
+	function fShowBalanse(userId, Adr, Cur) {
+		
+		var request = require('request');
+		var apiUr;
+		var precision;
+		if (Cur == 'ETH'){
+			apiUrl = 'https://api.ethermine.org/miner/' + Adr + '/currentStats';
+			precision = 1000000000000000000;
+		}
+		else {
+			apiUrl = 'https://api-zcash.flypool.org/miner/' + Adr + '/currentStats';
+			precision = 100000000;
+		}
+				
+    	request(apiUrl, function (error, response, body) {
+    	    if (error) {
+    	       console.log(error);
+    	       return;
+    	    };
+			var obj = JSON.parse(body);
+				
+			if (obj.status == 'ERROR'){
+				console.log('=====> Не можу отримати доступ до балансу за адресою ' + Adr);
+				bot.sendMessage(userId, '⚠️ Не можу отримати доступ до балансу за адресою ' + Adr);
+			}
+			else {
+				
+				var unpaidBalance = ((+obj.data.unpaid)/precision).toFixed(6);
+				var usdEarnings = ((+obj.data.usdPerMin)*60*24*30).toFixed(2);
+				var curEarnings = ((+obj.data.coinsPerMin)*60*24*30).toFixed(6);
+				var msgWithBalance = Cur + ': ' + Adr + '\n💰 Unpaid: ' + unpaidBalance + Cur + '\n💸 Earning: ' + curEarnings + Cur + ' ($' + usdEarnings + ')';
+	
+				console.log(userId + "==>" + msgWithBalance);
+				bot.sendMessage(userId, msgWithBalance);
+			};	
+		});	
+	};
+};
+
+
+	
+
+//************* | Dashboard | *************\\
+function fInitDashboard(msg){
+	var userId = msg.from.id;
+	
+	farmOwner.findOne({ 'telegramUserId': userId }, function (err, person) {
+  		if (err) return handleError(err);
+		if	(!(person.isMonitored)) {
+			console.log('=====> No address is monitored');
+			bot.sendMessage(userId, '⚠️ No address is monitored');
+			return;
+		};
+		for (var i = 0; i < person.addresses.length; i++){
+			var Cur = person.addresses[i].cur;
+			var Adr = person.addresses[i].adr;
+			
+			fShowDashBoard(userId, Adr, Cur);
+		};
+	});
+	
+	
+	function fShowDashBoard(userId, Adr, Cur){
+		
+		var request = require('request');
+		var apiUr;
+		if (Cur == 'ETH'){
+			apiUrl = 'https://api.ethermine.org/miner/' + Adr + '/workers';
+		}
+		else {
+			apiUrl = 'https://api-zcash.flypool.org/miner/' + Adr + '/workers';
+		};
+
+    	request(apiUrl, function (error, response, body) {
+        	if (error) {
+        	    console.log(error);
+        	    return;
+        	};
+			var obj = JSON.parse(body);
+				
+			if (obj.status == 'ERROR'){
+				console.log('=====> I can not access the pool ' + Adr);
+				bot.sendMessage(userId, '⚠️ I can not access the pool ' + Adr);
+			}
+			else {
+	
+				fAddAtrDb(msg, Adr, Cur, obj);	//Розширили об'єкт
+				if (Cur == 'ETH'){
+					for (var i=0; i<obj.data.length; i++) {
+					obj.data[i].reportedHashrate/=1000000;
+					obj.data[i].currentHashrate/=1000000;
+					};
+				};
+				fShowRigList (obj);				//Покажемо поточні ферми
+	
+			};	
+		});	
+	};
+};
+
+
+
+
+
+
+//********* | Support Functions | **********\\
+
+
+function fStopMonitoring(msg){
+	var userId = msg.from.id;
+	
+	farmOwner.findOne({ 'telegramUserId': userId }, function (err, person) {
+  		if (err) return handleError(err);
+		
+		if	(person.isMonitored){
+			person.isMonitored = false;
+			console.log('=====> I stop monitoring all your addresses');
+			person.addresses.splice(0);
+		
+			
+			person.save();
+			
+		}
+		else {
+			console.log('=====> No address is monitored');
+			bot.sendMessage(userId, '⚠️ No address is monitored');
+		};
+	});
+};
+
 function fAddAtrDb (msg, Adr, Cur, obj) {
 	
 	if (Cur == 'ETH') {
@@ -476,8 +585,6 @@ function fAddAtrDb (msg, Adr, Cur, obj) {
 	obj.userUserName = msg.from.username;	
 };
 
-
-//****** Новий запит на пул workers ******
 function newScanUsrDb(Adr, Cur, callback){
 	var request = require('request');
 	var apiUrl;
@@ -493,9 +600,8 @@ function newScanUsrDb(Adr, Cur, callback){
 	});
 };
 
-//****** Запис у файл ******
 function fWriteToFile (obj){
-	var destination = 'db\\' + obj.userId + obj.currency + obj.Adr +'.json';
+	var destination = 'users\\' + obj.userId + obj.currency + obj.Adr +'.json';
 	var JsonString = JSON.stringify(obj);
 			
 	fs.writeFile(destination, JsonString, function (err) {
@@ -503,11 +609,10 @@ function fWriteToFile (obj){
 	});
 };
 
-//****** Показ списку ферм ******
 function fShowRigList (obj){
-	
+	var userId = obj.userId;
 	var rigsAmount = obj.data.length;
-	var curSituation = '💬 '+ obj.currency + ': ' + obj.Adr + '\n' + rigsAmount + ' ферм.\n';
+	var curSituation = '💬 '+ obj.currency + ': ' + obj.Adr + '\n' + rigsAmount + ' farms.\n';
 	var sumReportedHashrate = 0;
 	var sumCurrentHashrate = 0;
 
@@ -551,130 +656,26 @@ function fShowRigList (obj){
 	
 };
 
+function timeConversion(millisec) {
 
-//****** Старт моніторингу ******
-function fStartMonitoring (obj) {
-	var Cur = obj.currency;
-	var userId = obj.userId;
-	var Adr=obj.Adr;
-		
-	var CronJob = require('cron').CronJob;
-	var job = new CronJob({
-  		cronTime: '*/2 * * * *',
-  		onTick: function() {
-			var tDurtion = timeConversion(Date.now() - tStart);
-			console.log('=====> КРОН! ' + tDurtion + ' ==>' + Adr);
+        var seconds = (millisec / 1000).toFixed(1);
 
-			
-			//***** ЗУПИНКА МОНІТОРИНГУ *********
-			
-			if	(
-				(!(actMonitor.hasOwnProperty(userId))) ||
-				(!(actMonitor[userId].monOnOf))
-				){
-			  	console.log('=====> Моніторинг адреси '+ Adr + ' зупинено!');
-				bot.sendMessage(userId, '⚠️ Моніторинг адреси '+ Adr + ' зупинено!');
-				this.stop();
-				return;
-			   };
-			
-			
-			newScanUsrDb(Adr, Cur, function(freshUsrDb) {
-				
-				
-                if (freshUsrDb == 'error') return;
+        var minutes = (millisec / (1000 * 60)).toFixed(1);
 
-				var newObj = JSON.parse(freshUsrDb);
-				
-				if (Cur == 'ETH') {
-					for (var i=0; i<newObj.data.length; i++) {
-					newObj.data[i].reportedHashrate/=1000000;
-					newObj.data[i].currentHashrate/=1000000;
-					};
-				};
-				
-				
-				//console.log('=====> 3. Пройдемося по старому обєкту:');
-				for (i = 0; i < obj.data.length; i++) {
-					
-					var exist = false;
-					var oldHashrate;
-					var newHashrate;
-					
-					for (k = 0; k < newObj.data.length; k++) {
-						if (obj.data[i].worker == newObj.data[k].worker) {
-							exist = true;
-							if (Cur == 'ETH') {
-								oldHashrate = obj.data[i].reportedHashrate;
-								newHashrate = newObj.data[k].reportedHashrate;
-							}
-							else {
-								oldHashrate = obj.data[i].currentHashrate;
-								newHashrate = newObj.data[k].currentHashrate;
-							};
-								
-						};
-					};
-						
-					//console.log(obj.data[i].worker + ' on Pool: ' + exist + ' Хешрейт: ' + oldHashrate + ' ==> ' + newHashrate);
-						
-					if (!(exist)) {
-						console.log('=====> ' + obj.data[i].worker + ': Deleted from pool listing');
-						bot.sendMessage(userId, '❌ ' + obj.data[i].worker + ': Deleted from pool listing');
-					};
-					
-					if ((exist)&&(!(newHashrate))&&(oldHashrate)) {
-						console.log('=====> Offline ' + obj.data[i].worker);
-						bot.sendMessage(userId, '🔴 Offline ' + obj.data[i].worker);
-					};
-					
-					if ((exist)&&(newHashrate)&&(!(oldHashrate))) {
-						console.log('=====> Online ' + obj.data[i].worker);
-						bot.sendMessage(userId, '🎾 Online ' + obj.data[i].worker);
-					};
+        var hours = (millisec / (1000 * 60 * 60)).toFixed(1);
 
-				};
-				
-				//console.log('=====> 4. Пройдемося по новому обєкту:');
-				for (i = 0; i < newObj.data.length; i++) {
-					var exist = false;
-					for (k = 0; k < obj.data.length; k++) {
-						if (newObj.data[i].worker == obj.data[k].worker) {
-							exist = true;
-						};
-					};
-						
-					//console.log(newObj.data[i].worker + ' on Pool: ' + exist );
-					if (!(exist)) {
-						console.log('=====> ' + newObj.data[i].worker + ': Added to pool');
-						bot.sendMessage(userId, '🎾 Online ' + newObj.data[i].worker + ': Added to pool');
-					};
-				};
-				
-				fTransportAtributes (obj, newObj);
-				obj=newObj;
-				
-				
-				
-				
-				
-				
-				
-			
-			
-			
-			
-			
-			
-			
-			});
-		},
-  		start: false,
-  		timeZone: 'Europe/Amsterdam'
-	});
-	
-	job.start();			
-};
+        var days = (millisec / (1000 * 60 * 60 * 24)).toFixed(1);
+
+        if (seconds < 60) {
+            return seconds + " Sec";
+        } else if (minutes < 60) {
+            return minutes + " Min";
+        } else if (hours < 24) {
+            return hours + " Hrs";
+        } else {
+            return days + " Days"
+        }
+    };
 
 function fTransportAtributes (objFrom, objTo) {
 	
@@ -686,120 +687,3 @@ function fTransportAtributes (objFrom, objTo) {
 	objTo.userUserName = objFrom.userUserName;
 	
 };
-
-
-function fStopMonitoring(msg){
-	var userId = msg.from.id;
-	if	(actMonitor.hasOwnProperty(userId)){
-		actMonitor[userId].monOnOf=false;
-		console.log('=====> Зупиняю моніторинг усіх Ваших адрес.');
-		
-		
-		console.log(JSON.stringify(actMonitor));
-
-		for (var i in actMonitor[userId]) {	
-			delete actMonitor[userId][i];
-		};
-		
-		console.log(JSON.stringify(actMonitor));
-		
-		
-		//bot.sendMessage(userId, '⚠️ Зупиняю моніторинг усіх Ваших адрес.');
-	}
-	else {
-		console.log('=====> Жодна адреса не моніториться');
-		bot.sendMessage(userId, '⚠️ Жодна адреса не моніториться');
-	};
-	
-};
-
-
-//*********** BALANCE ***********
-{
-function fBalanseEth(Adr, userId, Cur){
-	var request = require('request');
-	var apiUrl = 'https://api.ethermine.org/miner/' + Adr + '/currentStats';
-			
-    request(apiUrl, function (error, response, body) {
-        if (error) {
-           console.log(error);
-           return;
-        };
-		var obj = JSON.parse(body);
-			
-		if (obj.status == 'ERROR'){
-			console.log('=====> Не можу отримати доступ до балансу за адресою ' + Adr);
-			bot.sendMessage(userId, '⚠️ Не можу отримати доступ до балансу за адресою ' + Adr);
-		}
-		else {
-			var unpaidBalance = ((+obj.data.unpaid)/1000000000000000000).toFixed(6);
-			var usdEarnings = ((+obj.data.usdPerMin)*60*24*30).toFixed(2);
-			var curEarnings = ((+obj.data.coinsPerMin)*60*24*30).toFixed(6);
-			var msgWithBalance = 'ETH: ' + Adr + '\n💰 Unpaid: ' + unpaidBalance + 'ETH\n💸 Earning: ' + curEarnings + 'ETH ($' + usdEarnings + ')';
-
-			console.log(msgWithBalance);
-			bot.sendMessage(userId, msgWithBalance);
-		};	
-	});	
-};
-
-
-function fBalanseZec(Adr, userId, Cur){
-
-	var request = require('request');
-	var apiUrl = 'https://api-zcash.flypool.org/miner/' + Adr + '/currentStats';
-	request(apiUrl, function (error, response, body) {
-
-		var obj = JSON.parse(body);
-
-		if (obj.status == 'ERROR'){
-			console.log('=====> Не можу отримати доступ до балансу за адресою ' + Adr);
-			bot.sendMessage(userId, '⚠️ Не можу отримати доступ до балансу за адресою ' + Adr);
-		}
-		else {
-			var unpaidBalance = ((+obj.data.unpaid)/100000000).toFixed(6);
-			var usdEarnings = ((+obj.data.usdPerMin)*60*24*30).toFixed(2);
-			var curEarnings = ((+obj.data.coinsPerMin)*60*24*30).toFixed(6);
-			var msgWithBalance = 'ZEC: ' + Adr + '\n💰 Unpaid: ' + unpaidBalance + 'ZEC\n💸 Earning: ' + curEarnings + 'ZEC ($' + usdEarnings + ')';
-
-			console.log(msgWithBalance);
-			bot.sendMessage(userId, msgWithBalance);
-		};
-	});	
-};
-
-
-function fShowBalances (msg){
-	var userId = msg.from.id;
-	
-	if	(
-	(!(actMonitor.hasOwnProperty(userId))) ||
-	(!(actMonitor[userId].monOnOf))
-	){
-		console.log('=====> Жодна адреса зараз не моніториться');
-		bot.sendMessage(userId, '⚠️ Жодна адреса зараз не моніториться, спочатку надайте адресу.');
-	}
-	else{
-
-		var usrKeys = Object.keys(actMonitor[userId]);
-		
-		//for (var i in usrKeys) {
-		for(var i=0; i<usrKeys.length ;i++)	{
-			
-			if (usrKeys[i] == 'monOnOf') continue;
-			
-			var Cur;
-			var Adr = usrKeys[i];
-			
-			if (usrKeys[i][0] == 0){
-				Cur = 'ETH';
-				fBalanseEth(Adr, userId, Cur);
-			}
-			else {
-				Cur = 'ZEC';
-				fBalanseZec(Adr, userId, Cur);
-			};
-		};	
-	};
-};
-}
