@@ -1,8 +1,8 @@
 var admdata = {
 	
-	dbUrl: "*********",	//cloud
+	dbUrl: ".......",	//cloud
 
-	telToken: "**********"	//Work
+	telegramBotToken: "......."
 	
 };
 

@@ -192,6 +192,7 @@ function fServerStart (){
 fServerStart();
 
 //********* | Address initiation | ********\\
+
 function initMonitoring(msg, Adr, Cur){
 	userId = msg.from.id;
 	
@@ -308,6 +309,7 @@ function initMonitoring(msg, Adr, Cur){
 
 
 //********** | Monitoring cycle | *********\\
+
 function fStartMonitoring (obj) {
 	var Cur = obj.currency;
 	var userId = obj.userId;

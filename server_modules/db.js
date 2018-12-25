@@ -14,7 +14,7 @@ module.exports.connect = function (url, done){
 	mongoose.connect(url, { useNewUrlParser: true }, function (err, db) {
 		
 		if (err) {
-			return done(err);
+			return console.log("ERROR: a can not connect to MongoDB " + err);
 		};
 		
 		state.db = db;
